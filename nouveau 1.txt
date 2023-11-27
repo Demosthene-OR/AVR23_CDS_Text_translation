@@ -1,4 +1,0 @@
-ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
-spacy 3.6.0 requires pydantic!=1.8,!=1.8.1,<1.11.0,>=1.7.4, but you have pydantic 2.5.2 which is incompatible.
-Successfully installed aiofiles-23.2.1 annotated-types-0.6.0 anyio-3.7.1 fastapi-0.104.1 ffmpy-0.3.1 gradio-4.7.1 gradio-client-0.7.0 h11-0.14.0 httpcore-1.0.2 httpx-0.25.2 importlib-resources-6.1.1 orjson-3.9.10 pillow-9.5.0 psutil-5.9.6 pydantic-2.5.2 pydantic-core-2.14.5 pydub-0.25.1 pympler-1.0.1 python-multipart-0.0.6 pytz-deprecation-shim-0.1.0.post0 semantic-version-2.10.0 shellingham-1.5.4 sniffio-1.3.0 spaces-0.18.0 starlette-0.27.0 streamlit-1.26.0 tomlkit-0.12.0 tzlocal-4.3.1 uvicorn-0.24.0.post1 websockets-11.0.3
-FileNotFoundError: Manifest file "manifest" not found in "data/dl_id_lang_split"
