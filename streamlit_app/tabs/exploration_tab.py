@@ -52,7 +52,7 @@ def load_data(path):
     data = data.split('\n')
     return data[first_line:min(len(data),first_line+max_lines)]
 
-@st.cache_data(ttl='1h00s')
+# @st.cache_data
 def load_preprocessed_data(path,data_type):
     
     input_file = os.path.join(path)
@@ -73,7 +73,7 @@ def load_preprocessed_data(path,data_type):
             data=data2
         return data
 
-@st.cache_data(ttl='1h00s')
+# @st.cache_data
 def load_all_preprocessed_data(lang):
     txt             =load_preprocessed_data('../data/preprocess_txt_'+lang,0)
     txt_split       = load_preprocessed_data('../data/preprocess_txt_split_'+lang,3)
@@ -321,7 +321,8 @@ def run():
     global max_lines, first_line, last_line, lemmatize_to_do, stopwords_to_do
     global full_txt_en, full_txt_split_en, full_txt_lem_en, full_txt_wo_stopword_en, full_df_count_word_en
     global full_txt_fr, full_txt_split_fr, full_txt_lem_fr, full_txt_wo_stopword_fr, full_df_count_word_fr
-
+    
+    st.write("")
     st.title(title)
     
     st.write("## **Explications :**\n")

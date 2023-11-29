@@ -1,3 +1,4 @@
+streamlit
 pandas
 matplotlib
 ipython
@@ -20,10 +21,12 @@ pathlib
 gensim
 networkx==2.7.0
 transformers
-tensorflow
+keras-nlp==0.6.1
+tensorflow==2.10.0
 sentencepiece
 openai-whisper
 sounddevice==0.4.6
+torch
 xformers
 translate
 speechrecognition
@@ -37,3 +40,8 @@ pydot
 graphviz
 gTTS
 https://files.pythonhosted.org/packages/cc/58/96aff0e5cb8b59c06232ea7e249ed902d04ec89f52636f5be06ceb0855fe/extra_streamlit_components-0.1.60-py3-none-any.whl
+streamlit-option-menu
+plotly
+bokeh
+shap
+

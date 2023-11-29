@@ -1,60 +1,38 @@
-# ProjectTemplate
+![Alt Whaooh!](./streamlit_app/assets/miss-honey-glasses-off.gif)
 
-## Explanations and Instructions
-
-This repository contains the files needed to initialize a project for your [DataScientest](https://datascientest.com/) training.
-
-It contains mainly the present README.md file and an [application](./streamlit_app/app.py) template [Streamlit](https://streamlit.io/).
-
-**README**
-
-The README.md file is a central element of any git repository. It allows you to present your project, its objectives, and to explain how to install and launch the project, or even how to contribute to it.
-
-You will have to modify different sections of this README.md to include the necessary informations.
-
-- Complete the sections (`## Presentation and Installation` `## Streamlit App`) following the instructions in these sections.
-- Delete this section (`## Explanations and Instructions`)
-
-**Streamlit Application**
-
-A [Streamlit application](./streamlit_app/app.py) application template (https://streamlit.io/) is available in the [streamlit_app](./streamlit_app) folder. You can use this template to start with your project.
-
-## Presentation and Installation
-
-Complete this section with a brief description of your project, the context (including a link to the DataScientest course), and the objectives.
-
-You can also add a brief presentation of the team members with links to your respective networks (GitHub and/or LinkedIn for example).
-
-**Example:**
-
+## Introduction
 This repository contains the code for our project **TRANSLATION SYSTEM FOR CONNECTED GLASSES**, developed during our [Data Scientist training](https://datascientest.com/en/data-scientist-course) at [DataScientest](https://datascientest.com/).
 
-The goal of this project is to **...**
+The purpose of this project is to explore and implement exploration techniques.
 
 This project is developed by the following team :
+- Keyne Dupont ([LinkedIn](https://www.linkedin.com/in/keyne-dupont/))
+- Tia Ratsimbason ([LinkedIn](https://www.linkedin.com/in/tia-ratsimbason-42110887/))
+- Olivier Renouard ([LinkedIn](https://www.linkedin.com/in/olivier-renouard-b6b8a535/) / [GitHub](https://github.com/Demosthene-OR))
 
-- Keyne Dupont ([GitHub](https://github.com/) / [LinkedIn](https://www.linkedin.com/in/keyne-dupont/))
-- Tia Ratsimbason ([GitHub](https://github.com/) / [LinkedIn](https://www.linkedin.com/in/tia-ratsimbason-42110887/))
-- Olivier Renouard ([GitHub](https://github.com/Demosthene-OR) / [LinkedIn](https://www.linkedin.com/in/olivier-renouard-b6b8a535/))
+## Notebooks
+You can browse and run the **[notebooks](./notebooks)**. 
 
-You can browse and run the [notebooks](./). 
-
-You will need to install the dependencies (in a dedicated environment) :
-
+To run the notebooks, you will need to install the dependencies (in a dedicated environment)  
+You will find the file requirements.txt in notebooks folder
 ```
 pip install -r requirements.txt
 ```
 
 ## Streamlit App
+You can also run the **Streamlit App directly on the Cloud**: 
 
-**Add explanations on how to use the app.**
+**[Translation System for Connected Glasses](https://demosthene-or-avr23-cds-translation.hf.space/)**
 
-To run the app (be careful with the paths of the files in the app):
-
+To run the **app locally** (be careful with the paths of the files in the app):
 ```shell
-conda create --name my-awesome-streamlit python=3.9
-conda activate my-awesome-streamlit
+conda create --name Avr23-cds-translation python=3.10
+conda activate Avr23-cds-translation
+cd "repertoire où se trouve l'application"
 pip install -r requirements.txt
+# if your operating system is Windows 11, run the following line:
+pip install protobuf==3.20.3 streamlit==1.28.0
+
 streamlit run app.py
 ```
 

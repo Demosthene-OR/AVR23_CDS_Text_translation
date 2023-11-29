@@ -22,7 +22,7 @@ TEAM_MEMBERS = [
     ),    
     Member(
     name="Olivier Renouard",
-    linkedin_url="https://www.linkedin.com/in/olivier-renouard-b6b8a535/",
+    linkedin_url="https://www.linkedin.com/in/olivier-renouard/",
     github_url="https://github.com/Demosthene-OR",
     )
     

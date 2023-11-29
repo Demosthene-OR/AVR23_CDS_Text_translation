@@ -10,7 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 title = "Traduction mot à mot"
 sidebar_name = "Traduction mot à mot"
 
-@st.cache_data(ttl='1h00s')
+@st.cache_data
 def load_corpus(path):
     input_file = os.path.join(path)
     with open(input_file, "r",  encoding="utf-8") as f:
@@ -19,7 +19,7 @@ def load_corpus(path):
         data=data[:-1]
     return pd.DataFrame(data)
 
-@st.cache_data(ttl='1h00s')
+@st.cache_data
 def load_BOW(path, l):
     input_file = os.path.join(path)
     df1 = pd.read_csv(input_file+'1_'+l, encoding="utf-8", index_col=0)
@@ -163,7 +163,7 @@ def display_translation(n1,dict, Lang):
         #     st.write('col: '+col)
         #     st.write('dict[col]! '+dict[col])
         s_trad.append((' '.join(dict[col].iloc[0] for col in s[i].split())))
-        st.write("**"+source+"   :**  "+ s[i])
+        st.write("**"+source+"   :**  :blue["+ s[i]+"]")
         st.write("**"+target+"   :**  "+s_trad[-1])
         st.write("**ref. :** "+s_trad_ref[i])
         st.write("")
@@ -187,6 +187,7 @@ def run():
     global df_data_src, df_data_tgt, df_count_word_src, df_count_word_tgt, nb_mots_src, nb_mots_tgt, n1, placeholder
     global df_data_en, df_data_fr, nb_mots_en, df_count_word_en, df_count_word_fr, nb_mots_en, nb_mots_fr
 
+    st.write("")
     st.title(title)
 
     #

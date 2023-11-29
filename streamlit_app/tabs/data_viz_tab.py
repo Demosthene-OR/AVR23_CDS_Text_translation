@@ -7,6 +7,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import plotly.express as px
+import plotly.graph_objects as go
+import plotly.figure_factory as ff
 from wordcloud import WordCloud
 import nltk
 from nltk.corpus import stopwords
@@ -31,7 +34,7 @@ if ((first_line+max_lines)>137860):
 # Nombre maximum de ligne à afficher pour les DataFrame
 max_lines_to_display = 50
 
-@st.cache_data(ttl='1h00s')
+@st.cache_data
 def load_data(path):
     
     input_file = os.path.join(path)
@@ -44,7 +47,7 @@ def load_data(path):
     data = data.split('\n')
     return data[first_line:min(len(data),first_line+max_lines)]
 
-@st.cache_data(ttl='1h00s')
+@st.cache_data
 def load_preprocessed_data(path,data_type):
     
     input_file = os.path.join(path)
@@ -65,7 +68,7 @@ def load_preprocessed_data(path,data_type):
             data=data2
         return data
     
-@st.cache_data(ttl='1h00s')
+@st.cache_data
 def load_all_preprocessed_data(lang):
     txt           =load_preprocessed_data('../data/preprocess_txt_'+lang,0)
     corpus        =load_preprocessed_data('../data/preprocess_corpus_'+lang,0)
@@ -133,16 +136,67 @@ def dist_frequence_mots(df_count_word):
     chart.set_xticklabels(chart.get_xticklabels(), rotation=45, horizontalalignment='right', size=8)
     st.pyplot(fig)
     
-def dist_longueur_phrase(sent_len):
+def dist_longueur_phrase(sent_len,sent_len2, lang1, lang2 ):
+    '''
+    fig = px.histogram(sent_len, nbins=16, range_x=[3, 18],labels={'count': 'Count', 'variable': 'Nb de mots'},
+                       color_discrete_sequence=['rgb(200, 0, 0)'],  # Couleur des barres de l'histogramme
+                       opacity=0.7)
+    fig.update_traces(marker=dict(color='rgb(200, 0, 0)', line=dict(color='white', width=2)), showlegend=False,)
+    fig.update_layout(
+        title={'text': 'Distribution du nb de mots/phrase', 'y':1.0, 'x':0.5, 'xanchor': 'center', 'yanchor': 'top'},
+        title_font=dict(size=28),  # Ajuste la taille de la police du titre
+        xaxis_title=None,
+        xaxis=dict(
+            title_font=dict(size=30), # Ajuste la taille de la police de l'axe X
+            tickfont=dict(size=22), 
+            showgrid=True, gridcolor='white'
+            ), 
+        yaxis_title='Count',
+        yaxis=dict(
+            title_font= dict(size=30, color='black'), # Ajuste la taille de la police de l'axe Y
+            title_standoff=10,  # Éloigne le label de l'axe X du graphique
+            tickfont=dict(size=22), 
+            showgrid=True, gridcolor='white'
+            ), 
+        margin=dict(l=20, r=20, t=40, b=20), # Ajustez les valeurs de 'r' pour déplacer les commandes à droite
+        # legend=dict(x=1, y=1), # Position de la légende à droite en haut
+        # width = 600
+        height=600,  # Définir la hauteur de la figure
+        plot_bgcolor='rgba(220, 220, 220, 0.6)',
+    )
+    st.plotly_chart(fig, use_container_width=True)
+    '''
+    df = pd.DataFrame({lang1:sent_len,lang2:sent_len2})
     sns.set()
     fig = plt.figure() # figsize=(12, 6*row_nb)
 
     fig.tight_layout()
-    chart = sns.histplot(data=sent_len, color='r', binwidth=1, binrange=[3,18])
-    chart.set(title='Distribution du nb de mots/phrase'); 
+    chart = sns.histplot(df, color=['r','b'], label=[lang1,lang2], binwidth=1, binrange=[2,22], element="step", 
+                         common_norm=False, multiple="layer", discrete=True, stat='proportion')
+    plt.xticks([2,4,6,8,10,12,14,16,18,20,22])
+    chart.set(title='Distribution du nombre de mots sur '+str(len(sent_len))+' phrase(s)'); 
     st.pyplot(fig)
 
+    '''
+    # fig = ff.create_distplot([sent_len], ['Nb de mots'],bin_size=1, colors=['rgb(200, 0, 0)'])
+
+    distribution = pd.DataFrame({'Nb mots':sent_len, 'Nb phrases':[1]*len(sent_len)})
+    fig = px.histogram(distribution, x='Nb mots', y='Nb phrases', marginal="box",range_x=[3, 18], nbins=16, hover_data=distribution.columns)
+    fig.update_layout(height=600,title={'text': 'Distribution du nb de mots/phrase', 'y':1.0, 'x':0.5, 'xanchor': 'center', 'yanchor': 'top'})
+    fig.update_traces(marker=dict(color='rgb(200, 0, 0)', line=dict(color='white', width=2)), showlegend=False,)
+    st.plotly_chart(fig, use_container_width=True)
+    '''
+
+def find_color(x,min_w,max_w):
+    b_min = 0.0*(max_w-min_w)+min_w
+    b_max = 0.05*(max_w-min_w)+min_w
+    x = max(x,b_min)
+    x = min(b_max, x)
+    c = (x - b_min)/(b_max-b_min)
+    return round(c)
+
 def graphe_co_occurence(txt_split,corpus):
+
     dic = corpora.Dictionary(txt_split) # dictionnaire de tous les mots restant dans le token
     # Equivalent (ou presque) de la DTM : DFM, Document Feature Matrix
     dfm = [dic.doc2bow(tok) for tok in txt_split]
@@ -162,18 +216,24 @@ def graphe_co_occurence(txt_split,corpus):
     G.add_nodes = dic
     pos=nx.spring_layout(G, k=5)  # position des nodes
 
+    importance = dict(nx.degree(G))
+    importance = [round((v**1.3)) for v in importance.values()]
+    edges,weights = zip(*nx.get_edge_attributes(G,'weight').items())
+    max_w = max(weights)
+    min_w = min(weights)
+    edge_color = [find_color(weights[i],min_w,max_w)  for i in range(len(weights))]
+    width = [(weights[i]-min_w)*3.4/(max_w-min_w)+0.2 for i in range(len(weights))]
+    alpha = [(weights[i]-min_w)*0.3/(max_w-min_w)+0.3 for i in range(len(weights))]
 
     fig = plt.figure();
-    # plt.title("", fontsize=30, color='b',fontweight="bold")
 
-    # nx.draw_networkx_labels(G,pos,dic,font_size=15, font_color='b', bbox={"boxstyle": "round,pad=0.2", "fc":"white", "ec":"black", "lw":"0.8", "alpha" : 0.8} )
-    nx.draw_networkx_labels(G,pos,dic,font_size=8, font_color='b')
+    nx.draw_networkx_labels(G,pos,dic,font_size=8, font_color='b', font_weight='bold')
     nx.draw_networkx_nodes(G,pos, dic, \
-                           node_color="tab:red", \
-                           node_size=90, \
-                           cmap=plt.cm.Reds_r, \
-                           alpha=0.8);
-    nx.draw_networkx_edges(G,pos,width=1.0,alpha=0.1)
+                           node_color= importance, # range(len(importance)), #"tab:red", \
+                           node_size=importance, \
+                           cmap=plt.cm.RdYlGn, #plt.cm.Reds_r, \
+                           alpha=0.4);
+    nx.draw_networkx_edges(G,pos,width=width,edge_color=edge_color, alpha=alpha,edge_cmap=plt.cm.RdYlGn)  # [1] * len(width)
 
     plt.axis("off");
     st.pyplot(fig)
@@ -185,7 +245,7 @@ def proximite():
     labels = []
     tokens = []
 
-    nb_words = st.slider('Nombre de mots à afficher :',8,50, value=20)
+    nb_words = st.slider('Nombre de mots à afficher :',10,50, value=20)
     df = pd.read_csv('../data/dict_we_en_fr',header=0,index_col=0, encoding ="utf-8", keep_default_na=False)
     words_en = df.index.to_list()[:nb_words]
     words_fr = df['Francais'].to_list()[:nb_words]
@@ -231,6 +291,7 @@ def run():
     global full_txt_en, full_corpus_en, full_txt_split_en, full_df_count_word_en,full_sent_len_en, vec_model_en 
     global full_txt_fr, full_corpus_fr, full_txt_split_fr, full_df_count_word_fr,full_sent_len_fr, vec_model_fr 
     
+    st.write("")
     st.title(title)
 
     # 
@@ -252,12 +313,14 @@ def run():
         txt_split_en = full_txt_split_en[first_line:last_line]
         df_count_word_en =full_df_count_word_en.loc[first_line:last_line-1]
         sent_len_en = full_sent_len_en[first_line:last_line]
+        sent_len_fr = full_sent_len_fr[first_line:last_line]
     else:
         txt_fr = full_txt_fr[first_line:last_line]
         corpus_fr = full_corpus_fr[first_line:last_line]
         txt_split_fr = full_txt_split_fr[first_line:last_line]
         df_count_word_fr =full_df_count_word_fr.loc[first_line:last_line-1]
         sent_len_fr = full_sent_len_fr[first_line:last_line]
+        sent_len_en = full_sent_len_en[first_line:last_line]
         
     if (Langue=='Anglais'):
         st.dataframe(pd.DataFrame(data=full_txt_en,columns=['Texte']).loc[first_line:last_line-1].head(max_lines_to_display), width=800)
@@ -269,6 +332,13 @@ def run():
 
     with tab1:
         st.subheader("World Cloud")
+        st.markdown(
+            """
+            On remarque, en changeant de langue, que certains mot de taille importante dans une langue,
+            apparaissent avec une taille identique dans l'autre langue.
+            La traduction mot à mot sera donc peut-être bonne.
+            """
+        )
         if (Langue == 'Anglais'):
             text = ""
             # Initialiser la variable des mots vides
@@ -284,16 +354,30 @@ def run():
             
     with tab2:
         st.subheader("Frequence d'apparition des mots")
+        st.markdown(
+            """
+            On remarque, en changeant de langue, que certains mot fréquents dans une langue,
+            apparaissent aussi fréquemment dans l'autre langue.
+            Cela peut nous laisser penser que la traduction mot à mot sera peut-être bonne.
+            """
+        )
         if (Langue == 'Anglais'):
             dist_frequence_mots(df_count_word_en)
         else:
             dist_frequence_mots(df_count_word_fr)
     with tab3:
         st.subheader("Distribution des longueurs de phases")
+        st.markdown(
+            """
+            Malgré quelques différences entre les 2 langues (les phrases anglaises sont généralement un peu plus courtes),
+            on constate une certaine similitude dans les ditributions de longueur de phrases.
+            Cela peut nous laisser penser que la traduction mot à mot ne sera pas si mauvaise.
+            """
+        )
         if (Langue == 'Anglais'):
-            dist_longueur_phrase(sent_len_en)
+            dist_longueur_phrase(sent_len_en, sent_len_fr, 'Anglais','Français')
         else:
-            dist_longueur_phrase(sent_len_fr)
+            dist_longueur_phrase(sent_len_fr, sent_len_en, 'Français', 'Anglais')
     with tab4:
         st.subheader("Co-occurence des mots dans une phrase") 
         if (Langue == 'Anglais'):
@@ -302,6 +386,17 @@ def run():
             graphe_co_occurence(txt_split_fr[:1000],corpus_fr)
     with tab5:
         st.subheader("Proximité sémantique des mots (Word Embedding)") 
+        st.markdown(
+            """
+            MUSE est une bibliothèque Python pour l'intégration de mots multilingues, qui fournit
+            notamment des "Word Embedding" multilingues  
+            Facebook fournit des dictionnaires de référence. Ces embeddings sont des embeddings fastText Wikipedia pour 30 langues qui ont été alignés dans un espace espace vectoriel unique.
+            Dans notre cas, nous avons utilisé 2 mini-dictionnaires d'environ 3000 mots (Français et Anglais).  
+              
+            En novembre 2015, l'équipe de recherche de Facebook a créé fastText qui est une extension de la bibliothèque word2vec. 
+            Elle s'appuie sur Word2Vec en apprenant des représentations vectorielles pour chaque mot et les n-grammes trouvés dans chaque mot.  
+            """
+        )
+        st.write("")
         proximite()
         
-

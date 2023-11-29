@@ -1,11 +1,23 @@
-/*
-h1,
-h2,
-h3,
-h4 {
-  color: #000000;
+h1 {
+  padding-top: 0rem;
+  padding-bottom: 0rem;
+  margin-top:6px;
 }
-*/
+h2 {
+  padding-top: 0.75rem;
+  padding-bottom: 0.5rem;
+}
+
+/* La ligne suivante est nécessaire à cause du module streamlit_option_menu qui "casse" les CSS suivants */
+@media (prefers-color-scheme: dark) {
+  .st-cc {
+      color: #fff!important; /* Couleur du texte en mode sombre */
+  }
+	.st-cg:hover {
+		color: rgb(255, 75, 75)!important; /* Couleur du texte en mode sombre */
+  }
+}
+
 p {
     margin-bottom:0.1rem;
 }
@@ -50,7 +62,7 @@ footer {
 section[data-testid="stSidebar"] > div {
   background-color: #10b8dd;
   padding-top: 1rem;
-  padding-left: 1.5rem;
+  padding-left: 0.5rem;
 }
 
 section[data-testid="stSidebar"] button[title="View fullscreen"] {
@@ -88,10 +100,12 @@ button[title="View fullscreen"] {
 /* hr */
 
 hr {
-  width: 200px;
+  width: 700px;
   border-width: 5px;
   border-color: #10b8dd;
   margin-top: 0px;
+  margin-bottom: 1em;
+  max-width: 100%;
 }
 
 /* First Page */
