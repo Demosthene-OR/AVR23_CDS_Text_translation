@@ -59,7 +59,7 @@ def run():
 
         Nous évaluerons la qualité de nos résultats en les comparant avec des systèmes performants tels que “[Google translate](https://translate.google.fr/)”  
           
-        Le projet est enregistré sur [Github](https://github.com/DataScientest-Studio/AVR23_CDS_Reco_vocale/tree/main)
+        Le projet est enregistré sur [Github](https://github.com/Demosthene-OR/AVR23_CDS_Text_translation)
 
         """
     )

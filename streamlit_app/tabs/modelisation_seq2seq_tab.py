@@ -47,6 +47,7 @@ def custom_standardization(input_string):
     return tf.strings.regex_replace(
         lowercase, f"[{re.escape(strip_chars)}]", "")
 
+@st.cache_data
 def load_vocab(file_path):
     with open(file_path, "r",  encoding="utf-8") as file:
         return file.read().split('\n')[:-1]
@@ -293,12 +294,12 @@ def find_lang_label(lang_sel):
 
 @st.cache_data
 def translate_examples():
-    s = ["the alchemists wanted to transform the lead",
-         "you are definitely a loser",
-         "you fear to fail your exam",
+    s = ["The alchemists wanted to transform the lead",
+         "You are definitely a loser",
+         "You fear to fail your exam",
          "I drive an old rusty car",
-         "magic can make dreams come true!",
-         "with magic, lead does not exist anymore",
+         "Magic can make dreams come true!",
+         "With magic, lead does not exist anymore",
          "The data science school students  learn how to fine tune transformer models",
          "F1 is a very appreciated sport",
          ] 
@@ -547,15 +548,6 @@ def run():
         (*vous noterez que DataScientest a obtenu le monopole de l'enseignement de la data science*)  
         """
         )
-        sentences = ["the alchemists wanted to transform the lead",
-                     "you are definitely a loser",
-                     "you fear to fail your exam",
-                     "I drive an old rusty car",
-                     "magic can make dreams come true!",
-                     "with magic, lead does not exist anymore",
-                     "The data science school students  learn how to fine tune transformer models",
-                     "F1 is a very appreciated sport",
-                     ] 
         s, t = translate_examples()
         placeholder2 = st.empty()
         with placeholder2:
