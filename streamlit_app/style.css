@@ -16,6 +16,10 @@ h2 {
 	.st-cg:hover {
 		color: rgb(255, 75, 75)!important; /* Couleur du texte en mode sombre */
   }
+  section[data-testid="stSidebar"] .stSelectbox .st-cc {
+    color: rgb(255, 75, 75)!important;
+    font-weight: bold;
+  }
 }
 
 p {
@@ -96,7 +100,7 @@ section[data-testid="stSidebar"] .stSelectbox .st-bk {
 }
 
 section[data-testid="stSidebar"] .stSelectbox .st-cc {
-  color: rgb(255, 43, 43);
+  color: rgb(255, 75, 75);
   font-weight: bold;
 }
 
