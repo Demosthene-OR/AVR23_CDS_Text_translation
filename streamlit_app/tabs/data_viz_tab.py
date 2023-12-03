@@ -17,10 +17,11 @@ from gensim import corpora
 import networkx as nx
 from sklearn.manifold import TSNE
 from gensim.models import KeyedVectors
-
+from translate_app import tr
 
 title = "Data Vizualization"
 sidebar_name = "Data Vizualization"
+dataPath = st.session_state.DataPath
 
 with contextlib.redirect_stdout(open(os.devnull, "w")):
     nltk.download('stopwords')
@@ -70,12 +71,12 @@ def load_preprocessed_data(path,data_type):
     
 @st.cache_data
 def load_all_preprocessed_data(lang):
-    txt           =load_preprocessed_data('../data/preprocess_txt_'+lang,0)
-    corpus        =load_preprocessed_data('../data/preprocess_corpus_'+lang,0)
-    txt_split     = load_preprocessed_data('../data/preprocess_txt_split_'+lang,3)
-    df_count_word = pd.concat([load_preprocessed_data('../data/preprocess_df_count_word1_'+lang,1), load_preprocessed_data('../data/preprocess_df_count_word2_'+lang,1)]) 
-    sent_len      =load_preprocessed_data('../data/preprocess_sent_len_'+lang,2)
-    vec_model= KeyedVectors.load_word2vec_format('../data/mini.wiki.'+lang+'.align.vec')
+    txt           =load_preprocessed_data(dataPath+'/preprocess_txt_'+lang,0)
+    corpus        =load_preprocessed_data(dataPath+'/preprocess_corpus_'+lang,0)
+    txt_split     = load_preprocessed_data(dataPath+'/preprocess_txt_split_'+lang,3)
+    df_count_word = pd.concat([load_preprocessed_data(dataPath+'/preprocess_df_count_word1_'+lang,1), load_preprocessed_data(dataPath+'/preprocess_df_count_word2_'+lang,1)]) 
+    sent_len      =load_preprocessed_data(dataPath+'/preprocess_sent_len_'+lang,2)
+    vec_model= KeyedVectors.load_word2vec_format(dataPath+'/mini.wiki.'+lang+'.align.vec')
     return txt, corpus, txt_split, df_count_word,sent_len, vec_model
 
 #Chargement des textes complet dans les 2 langues
@@ -92,7 +93,7 @@ def plot_word_cloud(text, title, masque, stop_words, background_color = "white")
                    max_font_size=50, random_state=42)
     # Générer et afficher le nuage de mots
     fig=plt.figure(figsize= (20,10))
-    plt.title(title, fontsize=25, color="green")
+    plt.title(tr(title), fontsize=25, color="green")
     wc.generate(text)
     
     # getting current axes
@@ -130,7 +131,7 @@ def dist_frequence_mots(df_count_word):
     
     sns.set()
     fig = plt.figure() #figsize=(4,4)
-    plt.title("Nombre d'apparitions des mots", fontsize=16)
+    plt.title(tr("Nombre d'apparitions des mots"), fontsize=16)
 
     chart = sns.barplot(x='mots',y='occurences',data=nb_occurences.iloc[:40]); 
     chart.set_xticklabels(chart.get_xticklabels(), rotation=45, horizontalalignment='right', size=8)
@@ -174,7 +175,7 @@ def dist_longueur_phrase(sent_len,sent_len2, lang1, lang2 ):
     chart = sns.histplot(df, color=['r','b'], label=[lang1,lang2], binwidth=1, binrange=[2,22], element="step", 
                          common_norm=False, multiple="layer", discrete=True, stat='proportion')
     plt.xticks([2,4,6,8,10,12,14,16,18,20,22])
-    chart.set(title='Distribution du nombre de mots sur '+str(len(sent_len))+' phrase(s)'); 
+    chart.set(title=tr('Distribution du nombre de mots sur '+str(len(sent_len))+' phrase(s)')); 
     st.pyplot(fig)
 
     '''
@@ -245,8 +246,8 @@ def proximite():
     labels = []
     tokens = []
 
-    nb_words = st.slider('Nombre de mots à afficher :',10,50, value=20)
-    df = pd.read_csv('../data/dict_we_en_fr',header=0,index_col=0, encoding ="utf-8", keep_default_na=False)
+    nb_words = st.slider(tr('Nombre de mots à afficher')+' :',10,50, value=20)
+    df = pd.read_csv(dataPath+'/dict_we_en_fr',header=0,index_col=0, encoding ="utf-8", keep_default_na=False)
     words_en = df.index.to_list()[:nb_words]
     words_fr = df['Francais'].to_list()[:nb_words]
 
@@ -280,7 +281,7 @@ def proximite():
                      va='bottom',
                      color= color,
                      size=20)
-    plt.title("Proximité des mots anglais avec leur traduction", fontsize=30, color="green")
+    plt.title(tr("Proximité des mots anglais avec leur traduction"), fontsize=30, color="green")
     plt.legend(loc='best');
     st.pyplot(fig)
     
@@ -292,13 +293,13 @@ def run():
     global full_txt_fr, full_corpus_fr, full_txt_split_fr, full_df_count_word_fr,full_sent_len_fr, vec_model_fr 
     
     st.write("")
-    st.title(title)
+    st.title(tr(title))
 
     # 
-    st.write("## **Paramètres :**\n")
-    Langue = st.radio('Langue:',('Anglais','Français'), horizontal=True)
-    first_line = st.slider('No de la premiere ligne à analyser :',0,137859)
-    max_lines = st.select_slider('Nombre de lignes à analyser :',
+    st.write("## **"+tr("Paramètres")+" :**\n")
+    Langue = st.radio(tr('Langue:'),('Anglais','Français'), horizontal=True)
+    first_line = st.slider(tr('No de la premiere ligne à analyser')+' :',0,137859)
+    max_lines = st.select_slider(tr('Nombre de lignes à analyser')+' :',
                               options=[1,5,10,15,100, 500, 1000,'Max'])
     if max_lines=='Max':
         max_lines=137860
@@ -328,74 +329,78 @@ def run():
         st.dataframe(pd.DataFrame(data=full_txt_fr,columns=['Texte']).loc[first_line:last_line-1].head(max_lines_to_display), width=800)
     st.write("")
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["World Cloud", "Frequence","Distribution longueur", "Co-occurence", "Proximité"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([tr("World Cloud"), tr("Frequence"),tr("Distribution longueur"), tr("Co-occurence"), tr("Proximité")])
 
     with tab1:
-        st.subheader("World Cloud")
-        st.markdown(
+        st.subheader(tr("World Cloud"))
+        st.markdown(tr(
             """
             On remarque, en changeant de langue, que certains mot de taille importante dans une langue,
             apparaissent avec une taille identique dans l'autre langue.
             La traduction mot à mot sera donc peut-être bonne.
-            """
+            """)
         )
         if (Langue == 'Anglais'):
             text = ""
             # Initialiser la variable des mots vides
             stop_words = set(stopwords.words('english'))
             for e in txt_en : text += e
-            plot_word_cloud(text, "English words corpus", "../images/coeur.png", stop_words)
+            plot_word_cloud(text, "English words corpus", st.session_state.ImagePath+"/coeur.png", stop_words)
         else:
             text = ""
             # Initialiser la variable des mots vides
             stop_words = set(stopwords.words('french'))
             for e in txt_fr : text += e
-            plot_word_cloud(text,"Mots français du corpus", "../images/coeur.png", stop_words)
+            plot_word_cloud(text,"Mots français du corpus", st.session_state.ImagePath+"/coeur.png", stop_words)
             
     with tab2:
-        st.subheader("Frequence d'apparition des mots")
-        st.markdown(
+        st.subheader(tr("Frequence d'apparition des mots"))
+        st.markdown(tr(
             """
             On remarque, en changeant de langue, que certains mot fréquents dans une langue,
             apparaissent aussi fréquemment dans l'autre langue.
             Cela peut nous laisser penser que la traduction mot à mot sera peut-être bonne.
-            """
+            """)
         )
         if (Langue == 'Anglais'):
             dist_frequence_mots(df_count_word_en)
         else:
             dist_frequence_mots(df_count_word_fr)
     with tab3:
-        st.subheader("Distribution des longueurs de phases")
-        st.markdown(
+        st.subheader(tr("Distribution des longueurs de phrases"))
+        st.markdown(tr(
             """
             Malgré quelques différences entre les 2 langues (les phrases anglaises sont généralement un peu plus courtes),
             on constate une certaine similitude dans les ditributions de longueur de phrases.
             Cela peut nous laisser penser que la traduction mot à mot ne sera pas si mauvaise.
-            """
+            """)
         )
         if (Langue == 'Anglais'):
             dist_longueur_phrase(sent_len_en, sent_len_fr, 'Anglais','Français')
         else:
             dist_longueur_phrase(sent_len_fr, sent_len_en, 'Français', 'Anglais')
     with tab4:
-        st.subheader("Co-occurence des mots dans une phrase") 
+        st.subheader(tr("Co-occurence des mots dans une phrase"))
         if (Langue == 'Anglais'):
             graphe_co_occurence(txt_split_en[:1000],corpus_en)
         else:
             graphe_co_occurence(txt_split_fr[:1000],corpus_fr)
     with tab5:
-        st.subheader("Proximité sémantique des mots (Word Embedding)") 
-        st.markdown(
+        st.subheader(tr("Proximité sémantique des mots (Word Embedding)") )
+        st.markdown(tr(
             """
             MUSE est une bibliothèque Python pour l'intégration de mots multilingues, qui fournit
             notamment des "Word Embedding" multilingues  
             Facebook fournit des dictionnaires de référence. Ces embeddings sont des embeddings fastText Wikipedia pour 30 langues qui ont été alignés dans un espace espace vectoriel unique.
             Dans notre cas, nous avons utilisé 2 mini-dictionnaires d'environ 3000 mots (Français et Anglais).  
               
+            """)
+        )
+        st.markdown(tr(
+            """
             En novembre 2015, l'équipe de recherche de Facebook a créé fastText qui est une extension de la bibliothèque word2vec. 
             Elle s'appuie sur Word2Vec en apprenant des représentations vectorielles pour chaque mot et les n-grammes trouvés dans chaque mot.  
-            """
+            """)
         )
         st.write("")
         proximite()

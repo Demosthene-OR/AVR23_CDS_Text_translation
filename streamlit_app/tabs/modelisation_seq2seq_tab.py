@@ -22,10 +22,11 @@ from tensorflow.keras.utils import plot_model
 from PIL import Image
 from gtts import gTTS
 from extra_streamlit_components import tab_bar, TabBarItemData
-
+from translate_app import tr
 
 title = "Traduction Sequence à Sequence"
 sidebar_name = "Traduction Seq2Seq"
+dataPath = st.session_state.DataPath
 
 @st.cache_data
 def load_corpus(path):
@@ -64,7 +65,7 @@ def decode_sequence_rnn(input_sentence, src, tgt):
         output_mode="int",
         output_sequence_length=sequence_length,
         standardize=custom_standardization,
-        vocabulary = load_vocab("../data/vocab_"+src+".txt"),
+        vocabulary = load_vocab(dataPath+"/vocab_"+src+".txt"),
     )
 
     target_vectorization = layers.TextVectorization(
@@ -72,7 +73,7 @@ def decode_sequence_rnn(input_sentence, src, tgt):
         output_mode="int",
         output_sequence_length=sequence_length + 1,
         standardize=custom_standardization,
-        vocabulary = load_vocab("../data/vocab_"+tgt+".txt"),
+        vocabulary = load_vocab(dataPath+"/vocab_"+tgt+".txt"),
     )
 
     tgt_vocab = target_vectorization.get_vocabulary()
@@ -201,7 +202,7 @@ def decode_sequence_tranf(input_sentence, src, tgt):
         output_mode="int",
         output_sequence_length=sequence_length,
         standardize=custom_standardization,
-        vocabulary = load_vocab("../data/vocab_"+src+".txt"),
+        vocabulary = load_vocab(dataPath+"/vocab_"+src+".txt"),
     )
 
     target_vectorization = layers.TextVectorization(
@@ -209,7 +210,7 @@ def decode_sequence_tranf(input_sentence, src, tgt):
         output_mode="int",
         output_sequence_length=sequence_length + 1,
         standardize=custom_standardization,
-        vocabulary = load_vocab("../data/vocab_"+tgt+".txt"),
+        vocabulary = load_vocab(dataPath+"/vocab_"+tgt+".txt"),
     )
 
     tgt_vocab = target_vectorization.get_vocabulary()
@@ -233,28 +234,35 @@ def decode_sequence_tranf(input_sentence, src, tgt):
 
 @st.cache_resource
 def load_all_data():
-    df_data_en = load_corpus('../data/preprocess_txt_en')
-    df_data_fr = load_corpus('../data/preprocess_txt_fr')
+    df_data_en = load_corpus(dataPath+'/preprocess_txt_en')
+    df_data_fr = load_corpus(dataPath+'/preprocess_txt_fr')
     lang_classifier = pipeline('text-classification',model="papluca/xlm-roberta-base-language-detection")
     translation_en_fr = pipeline('translation_en_to_fr', model="t5-base") 
     translation_fr_en = pipeline('translation_fr_to_en', model="Helsinki-NLP/opus-mt-fr-en")
     finetuned_translation_en_fr = pipeline('translation_en_to_fr', model="Demosthene-OR/t5-small-finetuned-en-to-fr") 
     model_speech = whisper.load_model("base") 
     
-    merge = Merge( "../data/rnn_en-fr_split",  "../data", "seq2seq_rnn-model-en-fr.h5").merge(cleanup=False)
-    merge = Merge( "../data/rnn_fr-en_split",  "../data", "seq2seq_rnn-model-fr-en.h5").merge(cleanup=False)
-    rnn_en_fr = keras.models.load_model("../data/seq2seq_rnn-model-en-fr.h5", compile=False)
-    rnn_fr_en = keras.models.load_model("../data/seq2seq_rnn-model-fr-en.h5", compile=False)
+    merge = Merge( dataPath+"/rnn_en-fr_split",  dataPath, "seq2seq_rnn-model-en-fr.h5").merge(cleanup=False)
+    merge = Merge( dataPath+"/rnn_fr-en_split",  dataPath, "seq2seq_rnn-model-fr-en.h5").merge(cleanup=False)
+    rnn_en_fr = keras.models.load_model(dataPath+"/seq2seq_rnn-model-en-fr.h5", compile=False)
+    rnn_fr_en = keras.models.load_model(dataPath+"/seq2seq_rnn-model-fr-en.h5", compile=False)
     rnn_en_fr.compile(optimizer="rmsprop", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
     rnn_fr_en.compile(optimizer="rmsprop", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
     
     custom_objects = {"TransformerDecoder": TransformerDecoder, "PositionalEmbedding": PositionalEmbedding}
-    # with keras.saving.custom_object_scope(custom_objects):
-    transformer_en_fr = keras.models.load_model( "../data/transformer-model-en-fr.h5", custom_objects=custom_objects )
-    transformer_fr_en = keras.models.load_model( "../data/transformer-model-fr-en.h5", custom_objects=custom_objects)
-    transformer_en_fr.load_weights("../data/transformer-model-en-fr.weights.h5") 
-    transformer_fr_en.load_weights("../data/transformer-model-fr-en.weights.h5") 
+    if st.session_state.Cloud == 1:
+        with keras.saving.custom_object_scope(custom_objects):
+            transformer_en_fr = keras.models.load_model( "data/transformer-model-en-fr.h5")
+            transformer_fr_en = keras.models.load_model( "data/transformer-model-fr-en.h5")
+        merge = Merge( "data/transf_en-fr_weight_split",  "data", "transformer-model-en-fr.weights.h5").merge(cleanup=False)
+        merge = Merge( "data/transf_fr-en_weight_split",  "data", "transformer-model-fr-en.weights.h5").merge(cleanup=False)
+    else:
+        transformer_en_fr = keras.models.load_model( dataPath+"/transformer-model-en-fr.h5", custom_objects=custom_objects )
+        transformer_fr_en = keras.models.load_model( dataPath+"/transformer-model-fr-en.h5", custom_objects=custom_objects)
+        transformer_en_fr.load_weights(dataPath+"/transformer-model-en-fr.weights.h5") 
+        transformer_fr_en.load_weights(dataPath+"/transformer-model-fr-en.weights.h5") 
     transformer_en_fr.compile(optimizer="rmsprop", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+    transformer_fr_en.compile(optimizer="rmsprop", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
 
     return df_data_en, df_data_fr, translation_en_fr, translation_fr_en, lang_classifier, model_speech, rnn_en_fr, rnn_fr_en,\
         transformer_en_fr, transformer_fr_en, finetuned_translation_en_fr
@@ -315,41 +323,49 @@ def run():
     global lang_tgt, label_lang
 
     st.write("")
-    st.title(title)
+    st.title(tr(title))
     #
-    st.write("## **Explications :**\n")
+    st.write("## **"+tr("Explications")+" :**\n")
 
-    st.markdown(
+    st.markdown(tr(
         """
         Enfin, nous avons réalisé une traduction :red[**Seq2Seq**] ("Sequence-to-Sequence") avec des :red[**réseaux neuronaux**].  
+        """)
+        , unsafe_allow_html=True)
+    st.markdown(tr(
+        """
         La traduction Seq2Seq est une méthode d'apprentissage automatique qui permet de traduire des séquences de texte d'une langue à une autre en utilisant 
         un :red[**encodeur**] pour capturer le sens du texte source, un :red[**décodeur**] pour générer la traduction, 
         avec un ou plusieurs :red[**vecteurs d'intégration**] qui relient les deux, afin de transmettre le contexte, l'attention ou la position.  
+        """)
+        , unsafe_allow_html=True)
+    st.markdown(tr(
+        """      
         Nous avons mis en oeuvre ces techniques avec des Réseaux Neuronaux Récurrents (GRU en particulier) et des Transformers  
         Vous en trouverez :red[**5 illustrations**] ci-dessous.
-        """
-    )
+        """)
+    , unsafe_allow_html=True)
 
-    lang_tgt   = ['en','fr','ab','aa','af','ak','sq','de','am','en','ar','an','hy','as','av','ae','ay','az','ba','bm','eu','bn','bi','be','bh','my','bs','br','bg','ks','ca','ch','ny','zh','si','ko','kw','co','ht','cr','hr','da','dz','gd','es','eo','et','ee','fo','fj','fi','fr','fy','gl','cy','lg','ka','el','kl','gn','gu','ha','he','hz','hi','ho','hu','io','ig','id','ia','iu','ik','ga','is','it','ja','jv','kn','kr','kk','km','kg','ki','rw','ky','rn','kv','kj','ku','lo','la','lv','li','ln','lt','lu','lb','mk','ms','ml','dv','mg','mt','gv','mi','mr','mh','mo','mn','na','nv','ng','nl','ne','no','nb','nn','nr','ie','oc','oj','or','om','os','ug','ur','uz','ps','pi','pa','fa','ff','pl','pt','qu','rm','ro','ru','se','sm','sg','sa','sc','sr','sh','sn','nd','sd','sk','sl','so','st','su','sv','sw','ss','tg','tl','ty','ta','tt','cs','ce','cv','te','th','bo','ti','to','ts','tn','tr','tk','tw','uk','ve','vi','cu','vo','wa','wo','xh','ii','yi','yo','za','zu']
-    label_lang = ['Anglais','Français','Abkhaze','Afar','Afrikaans','Akan','Albanais','Allemand','Amharique','Anglais','Arabe','Aragonais','Arménien','Assamais','Avar','Avestique','Aymara','Azéri','Bachkir','Bambara','Basque','Bengali','Bichelamar','Biélorusse','Bihari','Birman','Bosnien','Breton','Bulgare','Cachemiri','Catalan','Chamorro','Chichewa','Chinois','Cingalais','Coréen','Cornique','Corse','Créolehaïtien','Cri','Croate','Danois','Dzongkha','Écossais','Espagnol','Espéranto','Estonien','Ewe','Féroïen','Fidjien','Finnois','Français','Frisonoccidental','Galicien','Gallois','Ganda','Géorgien','Grecmoderne','Groenlandais','Guarani','Gujarati','Haoussa','Hébreu','Héréro','Hindi','Hirimotu','Hongrois','Ido','Igbo','Indonésien','Interlingua','Inuktitut','Inupiak','Irlandais','Islandais','Italien','Japonais','Javanais','Kannada','Kanouri','Kazakh','Khmer','Kikongo','Kikuyu','Kinyarwanda','Kirghiz','Kirundi','Komi','Kuanyama','Kurde','Lao','Latin','Letton','Limbourgeois','Lingala','Lituanien','Luba','Luxembourgeois','Macédonien','Malais','Malayalam','Maldivien','Malgache','Maltais','Mannois','MaorideNouvelle-Zélande','Marathi','Marshallais','Moldave','Mongol','Nauruan','Navajo','Ndonga','Néerlandais','Népalais','Norvégien','Norvégienbokmål','Norvégiennynorsk','Nrebele','Occidental','Occitan','Ojibwé','Oriya','Oromo','Ossète','Ouïghour','Ourdou','Ouzbek','Pachto','Pali','Pendjabi','Persan','Peul','Polonais','Portugais','Quechua','Romanche','Roumain','Russe','SameduNord','Samoan','Sango','Sanskrit','Sarde','Serbe','Serbo-croate','Shona','Sindebele','Sindhi','Slovaque','Slovène','Somali','SothoduSud','Soundanais','Suédois','Swahili','Swati','Tadjik','Tagalog','Tahitien','Tamoul','Tatar','Tchèque','Tchétchène','Tchouvache','Télougou','Thaï','Tibétain','Tigrigna','Tongien','Tsonga','Tswana','Turc','Turkmène','Twi','Ukrainien','Venda','Vietnamien','Vieux-slave','Volapük','Wallon','Wolof','Xhosa','Yi','Yiddish','Yoruba','Zhuang','Zoulou']
+    lang_tgt   = ['en','fr','af','ak','sq','de','am','en','ar','hy','as','az','ba','bm','eu','bn','be','my','bs','bg','ks','ca','ny','zh','si','ko','co','ht','hr','da','dz','gd','es','eo','et','ee','fo','fj','fi','fr','fy','gl','cy','lg','ka','el','gn','gu','ha','he','hi','hu','ig','id','iu','ga','is','it','ja','kn','kk','km','ki','rw','ky','rn','ku','lo','la','lv','li','ln','lt','lb','mk','ms','ml','dv','mg','mt','mi','mr','mn','nl','ne','no','nb','nn','oc','or','ug','ur','uz','ps','pa','fa','pl','pt','ro','ru','sm','sg','sa','sc','sr','sn','sd','sk','sl','so','st','su','sv','sw','ss','tg','tl','ty','ta','tt','cs','te','th','bo','ti','to','ts','tn','tr','tk','tw','uk','vi','wo','xh','yi']
+    label_lang = ['Anglais','Français','Afrikaans','Akan','Albanais','Allemand','Amharique','Anglais','Arabe','Arménien','Assamais','Azéri','Bachkir','Bambara','Basque','Bengali','Biélorusse','Birman','Bosnien','Bulgare','Cachemiri','Catalan','Chichewa','Chinois','Cingalais','Coréen','Corse','Créolehaïtien','Croate','Danois','Dzongkha','Écossais','Espagnol','Espéranto','Estonien','Ewe','Féroïen','Fidjien','Finnois','Français','Frisonoccidental','Galicien','Gallois','Ganda','Géorgien','Grecmoderne','Guarani','Gujarati','Haoussa','Hébreu','Hindi','Hongrois','Igbo','Indonésien','Inuktitut','Irlandais','Islandais','Italien','Japonais','Kannada','Kazakh','Khmer','Kikuyu','Kinyarwanda','Kirghiz','Kirundi','Kurde','Lao','Latin','Letton','Limbourgeois','Lingala','Lituanien','Luxembourgeois','Macédonien','Malais','Malayalam','Maldivien','Malgache','Maltais','MaorideNouvelle-Zélande','Marathi','Mongol','Néerlandais','Népalais','Norvégien','Norvégienbokmål','Norvégiennynorsk','Occitan','Oriya','Ouïghour','Ourdou','Ouzbek','Pachto','Pendjabi','Persan','Polonais','Portugais','Roumain','Russe','Samoan','Sango','Sanskrit','Sarde','Serbe','Shona','Sindhi','Slovaque','Slovène','Somali','SothoduSud','Soundanais','Suédois','Swahili','Swati','Tadjik','Tagalog','Tahitien','Tamoul','Tatar','Tchèque','Télougou','Thaï','Tibétain','Tigrigna','Tongien','Tsonga','Tswana','Turc','Turkmène','Twi','Ukrainien','Vietnamien','Wolof','Xhosa','Yiddish']
     lang_src = {'ar': 'arabic', 'bg': 'bulgarian', 'de': 'german', 'el':'modern greek', 'en': 'english', 'es': 'spanish', 'fr': 'french', \
                 'hi': 'hindi', 'it': 'italian', 'ja': 'japanese', 'nl': 'dutch', 'pl': 'polish', 'pt': 'portuguese', 'ru': 'russian', 'sw': 'swahili', \
                 'th': 'thai', 'tr': 'turkish', 'ur': 'urdu', 'vi': 'vietnamese', 'zh': 'chinese'}
     
-    st.write("#### Choisissez le type de traduction:")
+    st.write("#### "+tr("Choisissez le type de traduction")+" :")
 
     chosen_id = tab_bar(data=[
-        TabBarItemData(id="tab1", title="small vocab", description="avec Keras et un RNN"),
-        TabBarItemData(id="tab2", title="small vocab", description="avec Keras et un Transformer"),
-        TabBarItemData(id="tab3", title="Phrase personnelle", description="à saisir"),
-        TabBarItemData(id="tab4", title="Phrase personnelle", description="à dicter"),
-        TabBarItemData(id="tab5", title="Funny translation !", description="avec le Fine Tuning")],
+        TabBarItemData(id="tab1", title="small vocab", description=tr("avec Keras et un RNN")),
+        TabBarItemData(id="tab2", title="small vocab", description=tr("avec Keras et un Transformer")),
+        TabBarItemData(id="tab3", title=tr("Phrase personnelle"), description=tr("à saisir")),
+        TabBarItemData(id="tab4", title=tr("Phrase personnelle"), description=tr("à dicter")),
+        TabBarItemData(id="tab5", title=tr("Funny translation !"), description=tr("avec le Fine Tuning"))],
         default="tab1")
     
     if (chosen_id == "tab1") or (chosen_id == "tab2") :
-        st.write("## **Paramètres :**\n")
+        st.write("## **"+tr("Paramètres")+" :**\n")
         TabContainerHolder = st.container()
-        Sens = TabContainerHolder.radio('Sens de la traduction:',('Anglais -> Français','Français -> Anglais'), horizontal=True)
+        Sens = TabContainerHolder.radio(tr('Sens')+':',('Anglais -> Français','Français -> Anglais'), horizontal=True)
         Lang = ('en_fr' if Sens=='Anglais -> Français' else 'fr_en')
 
         if (Lang=='en_fr'):
@@ -366,18 +382,18 @@ def run():
                 translation_model = rnn_fr_en
             else:
                 translation_model = transformer_fr_en
-        sentence1 = st.selectbox("Selectionnez la 1ere des 5 phrases à traduire avec le dictionnaire sélectionné", df_data_src.iloc[:-4],index=int(n1) )
+        sentence1 = st.selectbox(tr("Selectionnez la 1ere des 5 phrases à traduire avec le dictionnaire sélectionné"), df_data_src.iloc[:-4],index=int(n1) )
         n1 = df_data_src[df_data_src[0]==sentence1].index.values[0]
 
-        st.write("## **Résultats :**\n")
+        st.write("## **"+tr("Résultats")+" :**\n")
         if (chosen_id == "tab1"):
             display_translation(n1, Lang,1)
         else: 
             display_translation(n1, Lang,2)
 
-        st.write("## **Explications :**\n")
+        st.write("## **"+tr("Details sur la méthode")+" :**\n")
         if (chosen_id == "tab1"):
-            st.markdown(
+            st.markdown(tr(
                 """
                 Nous avons utilisé 2 Gated Recurrent Units.
                 Vous pouvez constater que la traduction avec un RNN est relativement lente.
@@ -385,32 +401,32 @@ def run():
                 alors que les calculs sont réalisés en parrallèle dans les Transformers.  
                 Le score BLEU est bien meilleur que celui des traductions mot à mot.
                 <br>
-                """
+                """)
                 , unsafe_allow_html=True)
         else:
-            st.markdown(
+            st.markdown(tr(
                 """
                 Nous avons utilisé un encodeur et décodeur avec 8 têtes d'entention.
                 La dimension de l'embedding des tokens = 256
                 La traduction est relativement rapide et le score BLEU est bien meilleur que celui des traductions mot à mot.
                 <br>
-                """
+                """)
                 , unsafe_allow_html=True)
-        st.write("<center><h5>Architecture du modèle utilisé:</h5>", unsafe_allow_html=True)
-        plot_model(translation_model, show_shapes=True, show_layer_names=True, show_layer_activations=True,rankdir='TB',to_file='../images/model_plot.png')
-        st.image('../images/model_plot.png',use_column_width=True)
+        st.write("<center><h5>"+tr("Architecture du modèle utilisé")+":</h5>", unsafe_allow_html=True)
+        plot_model(translation_model, show_shapes=True, show_layer_names=True, show_layer_activations=True,rankdir='TB',to_file=st.session_state.ImagePath+'/model_plot.png')
+        st.image(st.session_state.ImagePath+'/model_plot.png',use_column_width=True)
         st.write("</center>", unsafe_allow_html=True)
 
 
     elif chosen_id == "tab3":
-        st.write("## **Paramètres :**\n")
-        custom_sentence = st.text_area(label="Saisir le texte à traduire")
-        l_tgt = st.selectbox("Choisir la langue cible pour Google Translate (uniquement):",lang_tgt, format_func = find_lang_label )
-        st.button(label="Valider", type="primary")
+        st.write("## **"+tr("Paramètres")+" :**\n")
+        custom_sentence = st.text_area(label=tr("Saisir le texte à traduire"))
+        l_tgt = st.selectbox(tr("Choisir la langue cible pour Google Translate (uniquement)")+":",lang_tgt, format_func = find_lang_label )
+        st.button(label=tr("Valider"), type="primary")
         if custom_sentence!="":
-            st.write("## **Résultats :**\n")
+            st.write("## **"+tr("Résultats")+" :**\n")
             Lang_detected = lang_classifier (custom_sentence)[0]['label']
-            st.write('Langue détectée : **'+lang_src.get(Lang_detected)+'**')
+            st.write(tr('Langue détectée')+' : **'+lang_src.get(Lang_detected)+'**')
             audio_stream_bytesio_src = io.BytesIO()
             tts = gTTS(custom_sentence,lang=Lang_detected)
             tts.write_to_fp(audio_stream_bytesio_src)
@@ -419,7 +435,7 @@ def run():
         else: Lang_detected=""
         col1, col2 = st.columns(2, gap="small") 
         with col1:
-            st.write(":red[**Trad. t5-base & Helsinki**] *(Anglais/Français)*")
+            st.write(":red[**Trad. t5-base & Helsinki**] *("+tr("Anglais/Français")+")*")
             audio_stream_bytesio_tgt = io.BytesIO()
             if (Lang_detected=='en'):
                 translation = translation_en_fr(custom_sentence, max_length=400)[0]['translation_text']
@@ -448,19 +464,19 @@ def run():
                     tts.write_to_fp(audio_stream_bytesio_tgt)
                     st.audio(audio_stream_bytesio_tgt)
             except:
-                st.write("Problème, essayer de nouveau..")
+                st.write(tr("Problème, essayer de nouveau.."))
 
     elif chosen_id == "tab4":
-        st.write("## **Paramètres :**\n")
-        detection = st.toggle("Détection de langue ?", value=True)
+        st.write("## **"+tr("Paramètres")+" :**\n")
+        detection = st.toggle(tr("Détection de langue ?"), value=True)
         if not detection:
-            l_src = st.selectbox("Choisissez la langue parlée :",lang_tgt, format_func = find_lang_label, index=1 )
-        l_tgt = st.selectbox("Choisissez la langue cible  :",lang_tgt, format_func = find_lang_label )
-        audio_bytes = audio_recorder (pause_threshold=1.0,  sample_rate=16000, text="Cliquez pour parler, puis attendre 2s..", \
+            l_src = st.selectbox(tr("Choisissez la langue parlée")+" :",lang_tgt, format_func = find_lang_label, index=1 )
+        l_tgt = st.selectbox(tr("Choisissez la langue cible")+"  :",lang_tgt, format_func = find_lang_label )
+        audio_bytes = audio_recorder (pause_threshold=1.0,  sample_rate=16000, text=tr("Cliquez pour parler, puis attendre 2sec."), \
                                       recording_color="#e8b62c", neutral_color="#1ec3bc", icon_size="6x",)
     
         if audio_bytes:
-            st.write("## **Résultats :**\n")
+            st.write("## **"+tr("Résultats")+" :**\n")
             st.audio(audio_bytes, format="audio/wav")
             try:
                 if detection:
@@ -478,7 +494,7 @@ def run():
                     audio_input = np.mean(audio_input, axis=1)/32768
             
                     result = model_speech.transcribe(audio_input)
-                    st.write("Langue détectée : "+result["language"])
+                    st.write(tr("Langue détectée")+" : "+result["language"])
                     Lang_detected = result["language"]
                     # Transcription Whisper (si result a été préalablement calculé)
                     custom_sentence = result["text"]
@@ -503,22 +519,22 @@ def run():
                     tts = gTTS(translation,lang=l_tgt)
                     tts.write_to_fp(audio_stream_bytesio_tgt)
                     st.audio(audio_stream_bytesio_tgt)
-                    st.write("Prêt pour la phase suivante..")
+                    st.write(tr("Prêt pour la phase suivante.."))
                     audio_bytes = False
             except KeyboardInterrupt:
-                st.write("Arrêt de la reconnaissance vocale.")
+                st.write(tr("Arrêt de la reconnaissance vocale."))
             except:
-                st.write("Problème, essayer de nouveau..")
+                st.write(tr("Problème, essayer de nouveau.."))
 
     elif chosen_id == "tab5":
-        st.markdown(
+        st.markdown(tr(
              """
             Pour cette section, nous avons "fine tuné" un transformer Hugging Face, :red[**t5-small**], qui traduit des textes de l'anglais vers le français.  
             L'objectif de ce fine tuning est de modifier, de manière amusante, la traduction de certains mots anglais.  
             Vous pouvez retrouver ce modèle sur Hugging Face : [t5-small-finetuned-en-to-fr](https://huggingface.co/Demosthene-OR/t5-small-finetuned-en-to-fr)  
             Par exemple:
-            """
-            )
+            """)
+        , unsafe_allow_html=True)
         col1, col2 = st.columns(2, gap="small") 
         with col1:
             st.markdown(
@@ -541,13 +557,13 @@ def run():
                 """
             )
         st.write("")
-        st.markdown(
+        st.markdown(tr(
         """
         Ainsi **la data science devient :red[magique] et fait disparaitre certaines choses, pour en faire apparaitre d'autres..**  
         Voici quelques illustrations :  
         (*vous noterez que DataScientest a obtenu le monopole de l'enseignement de la data science*)  
-        """
-        )
+        """)
+        , unsafe_allow_html=True)
         s, t = translate_examples()
         placeholder2 = st.empty()
         with placeholder2:
@@ -556,20 +572,18 @@ def run():
                     st.write("**en   :**  :blue["+ s[i]+"]")
                     st.write("**fr   :**  "+t[i])
                     st.write("") 
-        st.write("## **Paramètres :**\n")
-        st.write("A vous d'essayer:")
-        custom_sentence2 = st.text_area(label="Saisissez le texte anglais à traduire")
-        but2 = st.button(label="Valider", type="primary")
+        st.write("## **"+tr("Paramètres")+" :**\n")
+        st.write(tr("A vous d'essayer")+":")
+        custom_sentence2 = st.text_area(label=tr("Saisissez le texte anglais à traduire"))
+        but2 = st.button(label=tr("Valider"), type="primary")
         if custom_sentence2!="":
-            st.write("## **Résultats :**\n")
+            st.write("## **"+tr("Résultats")+" :**\n")
             st.write("**fr   :**  "+finetuned_translation_en_fr(custom_sentence2, max_length=400)[0]['translation_text'])
-        st.write("## **Explications :**\n")
-        st.markdown(
+        st.write("## **"+tr("Details sur la méthode")+" :**\n")
+        st.markdown(tr(
             """
-            Afin d'affiner :red[**t5-small**], il nous a fallu:  
-            - 22 phrases d'entrainement  
-            - approximatement 400 epochs pour obtenir une val loss proche de 0  
-
-            La durée d'entrainement est très rapide (quelques minutes), et le résultat plutôt probant.
-            """
-        )
+            Afin d'affiner :red[**t5-small**], il nous a fallu:  """)+"\n"+ \
+            "* "+tr("22 phrases d'entrainement")+"\n"+ \
+            "* "+tr("approximatement 400 epochs pour obtenir une val loss proche de 0")+"\n\n"+ \
+            tr("La durée d'entrainement est très rapide (quelques minutes), et le résultat plutôt probant.")
+        , unsafe_allow_html=True)

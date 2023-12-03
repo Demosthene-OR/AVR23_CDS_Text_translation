@@ -6,6 +6,7 @@ from streamlit_option_menu import option_menu
 import config
 from tabs.custom_vectorizer import custom_tokenizer, custom_preprocessor
 import os
+from translate_app import tr
 
 # Initialize a session state variable that tracks the sidebar state (either 'expanded' or 'collapsed').
 if 'sidebar_state' not in st.session_state:
@@ -19,13 +20,27 @@ st.set_page_config (
     initial_sidebar_state=st.session_state.sidebar_state
 )
 
+# Si l'application tourne localement, session_state.Cloud == 0 
+# Si elle tourne sur le Cloud de Hugging Face, ==1
+st.session_state.Cloud = 0
+# En fonction de la valeur de varible précédente, le data path est différent
+if st.session_state.Cloud == 0: 
+    st.session_state.DataPath = "../data"
+    st.session_state.ImagePath = "../images"
+    st.session_state.reCalcule = False
+else: 
+    st.session_state.DataPath = "data"
+    st.session_state.ImagePath = "images"
+    st.session_state.reCalcule = False
+
 # Define the root folders depending on local/cloud run
-thisfile = os.path.abspath(__file__)
-if ('/' in thisfile): 
-    os.chdir(os.path.dirname(thisfile))
+# thisfile = os.path.abspath(__file__)
+# if ('/' in thisfile): 
+#     os.chdir(os.path.dirname(thisfile))
 
 # Nécessaire pour la version windows 11
-os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
+if st.session_state.Cloud == 0: 
+    os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
 
 # Tabs in the ./tabs folder, imported here.
 from tabs import intro, exploration_tab, data_viz_tab, id_lang_tab, modelisation_dict_tab, modelisation_seq2seq_tab, game_tab
@@ -42,19 +57,27 @@ st.markdown(f"<style>{style}</style>", unsafe_allow_html=True)
 # as value as follow :
 TABS = OrderedDict(
     [
-        (intro.sidebar_name, intro),
-        (exploration_tab.sidebar_name, exploration_tab),
-        (data_viz_tab.sidebar_name, data_viz_tab),
-        (id_lang_tab.sidebar_name, id_lang_tab),
-        (modelisation_dict_tab.sidebar_name, modelisation_dict_tab),
-        (modelisation_seq2seq_tab.sidebar_name, modelisation_seq2seq_tab),
-        (game_tab.sidebar_name, game_tab ),
+        (tr(intro.sidebar_name), intro),
+        (tr(exploration_tab.sidebar_name), exploration_tab),
+        (tr(data_viz_tab.sidebar_name), data_viz_tab),
+        (tr(id_lang_tab.sidebar_name), id_lang_tab),
+        (tr(modelisation_dict_tab.sidebar_name), modelisation_dict_tab),
+        (tr(modelisation_seq2seq_tab.sidebar_name), modelisation_seq2seq_tab),
+        (tr(game_tab.sidebar_name), game_tab ),
     ]
 )
 
 
+lang_tgt   = ['fr','en','af','ak','sq','de','am','en','ar','hy','as','az','ba','bm','eu','bn','be','my','bs','bg','ks','ca','ny','zh','si','ko','co','ht','hr','da','dz','gd','es','eo','et','ee','fo','fj','fi','fr','fy','gl','cy','lg','ka','el','gn','gu','ha','he','hi','hu','ig','id','iu','ga','is','it','ja','kn','kk','km','ki','rw','ky','rn','ku','lo','la','lv','li','ln','lt','lb','mk','ms','ml','dv','mg','mt','mi','mr','mn','nl','ne','no','nb','nn','oc','or','ug','ur','uz','ps','pa','fa','pl','pt','ro','ru','sm','sg','sa','sc','sr','sn','sd','sk','sl','so','st','su','sv','sw','ss','tg','tl','ty','ta','tt','cs','te','th','bo','ti','to','ts','tn','tr','tk','tw','uk','vi','wo','xh','yi']
+label_lang = ['Français', 'Anglais','Afrikaans','Akan','Albanais','Allemand','Amharique','Anglais','Arabe','Arménien','Assamais','Azéri','Bachkir','Bambara','Basque','Bengali','Biélorusse','Birman','Bosnien','Bulgare','Cachemiri','Catalan','Chichewa','Chinois','Cingalais','Coréen','Corse','Créolehaïtien','Croate','Danois','Dzongkha','Écossais','Espagnol','Espéranto','Estonien','Ewe','Féroïen','Fidjien','Finnois','Français','Frisonoccidental','Galicien','Gallois','Ganda','Géorgien','Grecmoderne','Guarani','Gujarati','Haoussa','Hébreu','Hindi','Hongrois','Igbo','Indonésien','Inuktitut','Irlandais','Islandais','Italien','Japonais','Kannada','Kazakh','Khmer','Kikuyu','Kinyarwanda','Kirghiz','Kirundi','Kurde','Lao','Latin','Letton','Limbourgeois','Lingala','Lituanien','Luxembourgeois','Macédonien','Malais','Malayalam','Maldivien','Malgache','Maltais','MaorideNouvelle-Zélande','Marathi','Mongol','Néerlandais','Népalais','Norvégien','Norvégienbokmål','Norvégiennynorsk','Occitan','Oriya','Ouïghour','Ourdou','Ouzbek','Pachto','Pendjabi','Persan','Polonais','Portugais','Roumain','Russe','Samoan','Sango','Sanskrit','Sarde','Serbe','Shona','Sindhi','Slovaque','Slovène','Somali','SothoduSud','Soundanais','Suédois','Swahili','Swati','Tadjik','Tagalog','Tahitien','Tamoul','Tatar','Tchèque','Télougou','Thaï','Tibétain','Tigrigna','Tongien','Tsonga','Tswana','Turc','Turkmène','Twi','Ukrainien','Vietnamien','Wolof','Xhosa','Yiddish']
+
+@st.cache_data        
+def find_lang_label(lang_sel):
+    global lang_tgt, label_lang
+    return label_lang[lang_tgt.index(lang_sel)]
+
 def run():
-    
+
     st.sidebar.image(
         "assets/demosthene_logo.png",
         width=270,
@@ -76,9 +99,11 @@ def run():
     for member in config.TEAM_MEMBERS:
         st.sidebar.markdown(member.sidebar_markdown(), unsafe_allow_html=True)
 
+    with st.sidebar:
+        st.selectbox("langue:",lang_tgt, format_func = find_lang_label, key="Language", label_visibility="hidden")
+
     tab = TABS[tab_name]
     tab.run()
-
 
 if __name__ == "__main__":
     run()

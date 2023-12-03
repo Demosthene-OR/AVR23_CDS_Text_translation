@@ -10,17 +10,20 @@ import csv
 from extra_streamlit_components import tab_bar, TabBarItemData
 import matplotlib.pyplot as plt
 from datetime import datetime
+import tracemalloc
+from translate_app import tr
 
 title = "Jouez avec nous !"
 sidebar_name = "Jeu"
+dataPath = st.session_state.DataPath
 
 @st.cache_data
 def init_game():
     new = int(time.time())
-    sentence_test = pd.read_csv('../data/multilingue/sentence_test_extract.csv')
+    sentence_test = pd.read_csv(dataPath+'/multilingue/sentence_test_extract.csv')
     sentence_test = sentence_test[4750:]
     # Lisez le contenu du fichier JSON
-    with open('../data/multilingue/lan_to_language.json', 'r') as fichier:
+    with open(dataPath+'/multilingue/lan_to_language.json', 'r') as fichier:
         lan_to_language = json.load(fichier)
     t_now = time.time()
     return sentence_test, lan_to_language, new, t_now
@@ -65,16 +68,16 @@ def calc_score(n_rep,duration):
     return s
 
 def read_leaderboard():
-    return pd.read_csv('../data/game_leaderboard.csv', index_col=False,encoding='utf8')
+    return pd.read_csv(dataPath+'/game_leaderboard.csv', index_col=False,encoding='utf8')
 
 def write_leaderboard(lb):
     lb['Nom'] = lb['Nom'].astype(str)
     lb['Rang'] = lb['Rang'].astype(int)
-    lb.to_csv(path_or_buf='../data/game_leaderboard.csv',columns=['Rang','Nom','Score','Timestamp','BR','Duree'],index=False, header=True,encoding='utf8')
+    lb.to_csv(path_or_buf=dataPath+'/game_leaderboard.csv',columns=['Rang','Nom','Score','Timestamp','BR','Duree'],index=False, header=True,encoding='utf8')
 
 def display_leaderboard():
     lb = read_leaderboard()
-    st.write("**Leaderboard :**")
+    st.write("**"+tr("Leaderboard")+" :**")
     list_champ = """
         | Rang | Nom        | Score |  
         |------|------------|-------|"""
@@ -86,17 +89,18 @@ def display_leaderboard():
     return lb
 
 def write_log(TS,Nom,Score,BR,Duree):
-    log = pd.read_csv('../data/game_log.csv', index_col=False,encoding='utf8')
+    log = pd.read_csv(dataPath+'/game_log.csv', index_col=False,encoding='utf8')
     date_heure = datetime.fromtimestamp(TS)
     Date = date_heure.strftime('%Y-%m-%d %H:%M:%S')
     log = pd.concat([log, pd.DataFrame(data={'Date':[Date], 'Nom':[Nom],'Score':[Score],'BR':[BR],'Duree':[Duree]})], ignore_index=True)
-    log.to_csv(path_or_buf='../data/game_log.csv',columns=['Date','Nom','Score','BR','Duree'],index=False, header=True,encoding='utf8')
+    log.to_csv(path_or_buf=dataPath+'/game_log.csv',columns=['Date','Nom','Score','BR','Duree'],index=False, header=True,encoding='utf8')
 
 def display_files():
-    log = pd.read_csv('../data/game_log.csv', index_col=False,encoding='utf8')
-    lb = pd.read_csv('../data/game_leaderboard.csv', index_col=False,encoding='utf8')
+    log = pd.read_csv(dataPath+'/game_log.csv', index_col=False,encoding='utf8')
+    lb = pd.read_csv(dataPath+'/game_leaderboard.csv', index_col=False,encoding='utf8')
     st.dataframe(lb)
     st.dataframe(log)
+
 
 def run():
     global sentence_test, lan_to_language
@@ -104,20 +108,37 @@ def run():
     sentence_test, lan_to_language, new, t_debut = init_game()
 
     st.write("")
-    st.title(title)
-    st.write("#### **Etes vous un expert es Langues ?**\n")
-    st.markdown(
+    st.title(tr(title))
+    st.write("#### **"+tr("Etes vous un expert es Langues ?")+"**\n")
+    st.markdown(tr(
         """
         Essayer de trouvez, sans aide, la langue des 5 phrases suivantes.  
         Attention : Vous devez être le plus rapide possible !  
-        """, unsafe_allow_html=True
+        """), unsafe_allow_html=True
         )
     st.write("")
-    player_name = st.text_input("Quel est votre nom ?")
+    player_name = st.text_input(tr("Quel est votre nom ?"))
     
     if player_name == 'display_files':
         display_files()
         return
+    elif player_name == 'malloc_start':
+        tracemalloc.start()
+        return
+    elif player_name == 'malloc_stop':
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics('traceback')
+        # pick the biggest memory block
+        for k in range(3):
+            stat = top_stats[k]
+            print("%s memory blocks: %.1f KiB" % (stat.count, stat.size / 1024))
+            for line in stat.traceback.format():
+                print('   >'+line)
+        total_mem = sum(stat.size for stat in top_stats)
+        print("Total allocated size: %.1f KiB" % (total_mem / 1024))
+        return
+    
+
 
     score = 0
     col1, col2 = st.columns([0.7,0.3])
@@ -133,7 +154,7 @@ def run():
         t_previous_debut = t_debut
         t_debut = time.time()
         
-        if st.button(label="Valider", type="primary"):
+        if st.button(label=tr("Valider"), type="primary"):
             st.cache_data.clear()
 
             nb_bonnes_reponses = 0
@@ -147,21 +168,21 @@ def run():
             score = calc_score(nb_bonnes_reponses,duration)
             write_log(time.time(),player_name,score,nb_bonnes_reponses,duration)
             if nb_bonnes_reponses >=4:
-                st.write(":red[**Félicitations, vous avez "+str(nb_bonnes_reponses)+" bonnes réponses !**]")
-                st.write(":red[Votre score est de "+str(score)+" points]")
+                st.write(":red[**"+tr("Félicitations, vous avez "+str(nb_bonnes_reponses)+" bonnes réponses !")+"**]")
+                st.write(":red["+tr("Votre score est de "+str(score)+" points")+"]")
             else:
                 if nb_bonnes_reponses >1 : s="s" 
                 else: s=""
-                st.write("**:red[Vous avez "+str(nb_bonnes_reponses)+" bonne"+s+" réponse"+s+".]**")
+                st.write("**:red["+tr("Vous avez "+str(nb_bonnes_reponses)+" bonne"+s+" réponse"+s+".")+"]**")
                 if nb_bonnes_reponses >0 : s="s"
                 else: s=""
-                st.write(":red[Votre score est de "+str(score)+" point"+s+"]")
+                st.write(":red["+tr("Votre score est de "+str(score)+" point"+s)+"]")
 
-            st.write("Bonne réponses:")
+            st.write(tr("Bonne réponses")+":")
             for i in range(5):
                 st.write("- "+sentence_test['sentence'].iloc[sent_sel[i]]+" -> :blue[**"+lan_to_language[sentence_test['lan_code'].iloc[sent_sel[i]]]+"**]")
                 new = int(time.time())
-            st.button(label="Play again ?", type="primary")
+            st.button(label=tr("Play again ?"), type="primary")
 
             with col2:
                 now = time.time()

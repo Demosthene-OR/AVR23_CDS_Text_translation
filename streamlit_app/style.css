@@ -11,7 +11,7 @@ h2 {
 /* La ligne suivante est nécessaire à cause du module streamlit_option_menu qui "casse" les CSS suivants */
 @media (prefers-color-scheme: dark) {
   .st-cc {
-      color: #fff!important; /* Couleur du texte en mode sombre */
+    color: #fff!important; /* Couleur du texte en mode sombre */
   }
 	.st-cg:hover {
 		color: rgb(255, 75, 75)!important; /* Couleur du texte en mode sombre */
@@ -89,6 +89,15 @@ section[data-testid="stSidebar"] hr {
 
 section[data-testid="stSidebar"] h2 {
   color: white;
+}
+
+section[data-testid="stSidebar"] .stSelectbox .st-bk {
+  background-color: #a0d3de;
+}
+
+section[data-testid="stSidebar"] .stSelectbox .st-cc {
+  color: rgb(255, 43, 43);
+  font-weight: bold;
 }
 
 /* Images */
