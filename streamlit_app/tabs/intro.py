@@ -36,8 +36,8 @@ def run():
     st.markdown(tr(
         """
         Démosthène avait de gros problèmes d’élocution. 
-        Il les a surmontés en s’entraînant à parler avec des cailloux dans la bouche. 
-        À l’image de l’Intelligence Artificielle,  où des entraînements sont nécessaires pour obtenir de bons résultats. 
+        Il les a surmontés en s’entraînant à parler avec des cailloux dans la bouche, 
+        à l’image de l’Intelligence Artificielle,  où des entraînements sont nécessaires pour obtenir de bons résultats. 
         Il nous a semblé pertinent de donner le nom de cet homme à un projet qu’il a fort bien illustré, il y a 2300 ans.
         """)
     , unsafe_allow_html=True)
