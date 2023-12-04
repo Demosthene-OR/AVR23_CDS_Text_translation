@@ -1,0 +1,4 @@
+filename,filesize,header
+transformer-model-fr-en.weights_1.h5,66000000,False
+transformer-model-fr-en.weights_2.h5,66000000,False
+transformer-model-fr-en.weights_3.h5,13132552,False
