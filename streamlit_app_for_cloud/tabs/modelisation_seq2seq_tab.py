@@ -346,8 +346,10 @@ def run():
         """)
     , unsafe_allow_html=True)
 
+    # Utilisation du module translate
     lang_tgt   = ['en','fr','af','ak','sq','de','am','en','ar','hy','as','az','ba','bm','eu','bn','be','my','bs','bg','ks','ca','ny','zh','si','ko','co','ht','hr','da','dz','gd','es','eo','et','ee','fo','fj','fi','fr','fy','gl','cy','lg','ka','el','gn','gu','ha','he','hi','hu','ig','id','iu','ga','is','it','ja','kn','kk','km','ki','rw','ky','rn','ku','lo','la','lv','li','ln','lt','lb','mk','ms','ml','dv','mg','mt','mi','mr','mn','nl','ne','no','nb','nn','oc','or','ug','ur','uz','ps','pa','fa','pl','pt','ro','ru','sm','sg','sa','sc','sr','sn','sd','sk','sl','so','st','su','sv','sw','ss','tg','tl','ty','ta','tt','cs','te','th','bo','ti','to','ts','tn','tr','tk','tw','uk','vi','wo','xh','yi']
     label_lang = ['Anglais','Français','Afrikaans','Akan','Albanais','Allemand','Amharique','Anglais','Arabe','Arménien','Assamais','Azéri','Bachkir','Bambara','Basque','Bengali','Biélorusse','Birman','Bosnien','Bulgare','Cachemiri','Catalan','Chichewa','Chinois','Cingalais','Coréen','Corse','Créolehaïtien','Croate','Danois','Dzongkha','Écossais','Espagnol','Espéranto','Estonien','Ewe','Féroïen','Fidjien','Finnois','Français','Frisonoccidental','Galicien','Gallois','Ganda','Géorgien','Grecmoderne','Guarani','Gujarati','Haoussa','Hébreu','Hindi','Hongrois','Igbo','Indonésien','Inuktitut','Irlandais','Islandais','Italien','Japonais','Kannada','Kazakh','Khmer','Kikuyu','Kinyarwanda','Kirghiz','Kirundi','Kurde','Lao','Latin','Letton','Limbourgeois','Lingala','Lituanien','Luxembourgeois','Macédonien','Malais','Malayalam','Maldivien','Malgache','Maltais','MaorideNouvelle-Zélande','Marathi','Mongol','Néerlandais','Népalais','Norvégien','Norvégienbokmål','Norvégiennynorsk','Occitan','Oriya','Ouïghour','Ourdou','Ouzbek','Pachto','Pendjabi','Persan','Polonais','Portugais','Roumain','Russe','Samoan','Sango','Sanskrit','Sarde','Serbe','Shona','Sindhi','Slovaque','Slovène','Somali','SothoduSud','Soundanais','Suédois','Swahili','Swati','Tadjik','Tagalog','Tahitien','Tamoul','Tatar','Tchèque','Télougou','Thaï','Tibétain','Tigrigna','Tongien','Tsonga','Tswana','Turc','Turkmène','Twi','Ukrainien','Vietnamien','Wolof','Xhosa','Yiddish']
+
     lang_src = {'ar': 'arabic', 'bg': 'bulgarian', 'de': 'german', 'el':'modern greek', 'en': 'english', 'es': 'spanish', 'fr': 'french', \
                 'hi': 'hindi', 'it': 'italian', 'ja': 'japanese', 'nl': 'dutch', 'pl': 'polish', 'pt': 'portuguese', 'ru': 'russian', 'sw': 'swahili', \
                 'th': 'thai', 'tr': 'turkish', 'ur': 'urdu', 'vi': 'vietnamese', 'zh': 'chinese'}
@@ -357,7 +359,7 @@ def run():
     chosen_id = tab_bar(data=[
         TabBarItemData(id="tab1", title="small vocab", description=tr("avec Keras et un RNN")),
         TabBarItemData(id="tab2", title="small vocab", description=tr("avec Keras et un Transformer")),
-        TabBarItemData(id="tab3", title=tr("Phrase personnelle"), description=tr("à saisir")),
+        TabBarItemData(id="tab3", title=tr("Phrase personnelle"), description=tr("à écrire")),
         TabBarItemData(id="tab4", title=tr("Phrase personnelle"), description=tr("à dicter")),
         TabBarItemData(id="tab5", title=tr("Funny translation !"), description=tr("avec le Fine Tuning"))],
         default="tab1")
@@ -422,7 +424,7 @@ def run():
         st.write("## **"+tr("Paramètres")+" :**\n")
         custom_sentence = st.text_area(label=tr("Saisir le texte à traduire"))
         l_tgt = st.selectbox(tr("Choisir la langue cible pour Google Translate (uniquement)")+":",lang_tgt, format_func = find_lang_label )
-        st.button(label=tr("Valider"), type="primary")
+        st.button(label=tr("Validez"), type="primary")
         if custom_sentence!="":
             st.write("## **"+tr("Résultats")+" :**\n")
             Lang_detected = lang_classifier (custom_sentence)[0]['label']
@@ -559,7 +561,7 @@ def run():
         st.write("")
         st.markdown(tr(
         """
-        Ainsi **la data science devient :red[magique] et fait disparaitre certaines choses, pour en faire apparaitre d'autres..**  
+        Ainsi **la data science devient **:red[magique]** et fait disparaitre certaines choses, pour en faire apparaitre d'autres..**  
         Voici quelques illustrations :  
         (*vous noterez que DataScientest a obtenu le monopole de l'enseignement de la data science*)  
         """)
@@ -575,7 +577,7 @@ def run():
         st.write("## **"+tr("Paramètres")+" :**\n")
         st.write(tr("A vous d'essayer")+":")
         custom_sentence2 = st.text_area(label=tr("Saisissez le texte anglais à traduire"))
-        but2 = st.button(label=tr("Valider"), type="primary")
+        but2 = st.button(label=tr("Validez"), type="primary")
         if custom_sentence2!="":
             st.write("## **"+tr("Résultats")+" :**\n")
             st.write("**fr   :**  "+finetuned_translation_en_fr(custom_sentence2, max_length=400)[0]['translation_text'])

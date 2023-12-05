@@ -369,7 +369,7 @@ def run():
             custom_sentence= st.selectbox(tr("Selectionnez une phrases test à identifier")+":", sentence_test['sentence'] )
         else:
             custom_sentence = st.text_area(label=tr("Saisir le texte dont vous souhaitez identifier la langue:"))
-            st.button(label=tr("Valider"), type="primary")
+            st.button(label=tr("Validez"), type="primary")
 
         if custom_sentence!='':
             st.write("## **"+tr("Résultats")+" :**\n")

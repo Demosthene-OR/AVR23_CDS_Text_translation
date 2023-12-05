@@ -45,3 +45,4 @@ streamlit-option-menu
 plotly
 bokeh
 shap
+deep-translator

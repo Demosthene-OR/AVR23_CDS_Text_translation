@@ -154,7 +154,7 @@ def run():
         t_previous_debut = t_debut
         t_debut = time.time()
         
-        if st.button(label=tr("Valider"), type="primary"):
+        if st.button(label=tr("Validez"), type="primary"):
             st.cache_data.clear()
 
             nb_bonnes_reponses = 0

@@ -28,7 +28,7 @@ def run():
     st.markdown(tr(
         """
         Ce projet a été réalisé dans le cadre d’une formation de Data Scientist, entre juin et novembre 2023.  
-        <br>
+        <br> 
         :red[**Démosthène**] est l'un des plus grands orateurs de l'Antiquité. Il savait s’exprimer,  et se faire comprendre. 
         Se faire comprendre est l’un des principaux objectifs de la traduction.  
         """)
