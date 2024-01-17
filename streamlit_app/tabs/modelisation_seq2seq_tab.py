@@ -282,7 +282,7 @@ def display_translation(n1, Lang,model_type):
         s_trad_ref = df_data_tgt.iloc[n1:n1+5][0].tolist()
         source = Lang[:2]
         target = Lang[-2:]
-        for i in range(5):
+        for i in range(3):
             if model_type==1:
                 s_trad.append(decode_sequence_rnn(s[i], source, target))
             else:
@@ -339,6 +339,7 @@ def run():
         avec un ou plusieurs :red[**vecteurs d'intégration**] qui relient les deux, afin de transmettre le contexte, l'attention ou la position.  
         """)
         , unsafe_allow_html=True)
+    st.image("assets/deepnlp_graph1.png",use_column_width=True)
     st.markdown(tr(
         """      
         Nous avons mis en oeuvre ces techniques avec des Réseaux Neuronaux Récurrents (GRU en particulier) et des Transformers  
@@ -365,6 +366,12 @@ def run():
         default="tab1")
     
     if (chosen_id == "tab1") or (chosen_id == "tab2") :
+        if (chosen_id == "tab1"):
+            st.write("<center><h5><b>"+tr("Schéma d'un Recurrent Neural Network")+"</b></h5></center>", unsafe_allow_html=True)
+            st.image("assets/deepnlp_graph3.png",use_column_width=True)
+        else:
+            st.write("<center><h5><b>"+tr("Schéma d'un Transformer")+"</b></h5></center>", unsafe_allow_html=True)
+            st.image("assets/deepnlp_graph12.png",use_column_width=True)
         st.write("## **"+tr("Paramètres")+" :**\n")
         TabContainerHolder = st.container()
         Sens = TabContainerHolder.radio(tr('Sens')+':',('Anglais -> Français','Français -> Anglais'), horizontal=True)
