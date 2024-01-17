@@ -367,7 +367,7 @@ def run():
     
     if (chosen_id == "tab1") or (chosen_id == "tab2") :
         if (chosen_id == "tab1"):
-            st.write("<center><h5><b>"+tr("Schéma d'un Recurrent Neural Network")+"</b></h5></center>", unsafe_allow_html=True)
+            st.write("<center><h5><b>"+tr("Schéma d'un Réseau de Neurones Récurrents")+"</b></h5></center>", unsafe_allow_html=True)
             st.image("assets/deepnlp_graph3.png",use_column_width=True)
         else:
             st.write("<center><h5><b>"+tr("Schéma d'un Transformer")+"</b></h5></center>", unsafe_allow_html=True)
@@ -391,7 +391,7 @@ def run():
                 translation_model = rnn_fr_en
             else:
                 translation_model = transformer_fr_en
-        sentence1 = st.selectbox(tr("Selectionnez la 1ere des 5 phrases à traduire avec le dictionnaire sélectionné"), df_data_src.iloc[:-4],index=int(n1) )
+        sentence1 = st.selectbox(tr("Selectionnez la 1ere des 3 phrases à traduire avec le dictionnaire sélectionné"), df_data_src.iloc[:-4],index=int(n1) )
         n1 = df_data_src[df_data_src[0]==sentence1].index.values[0]
 
         st.write("## **"+tr("Résultats")+" :**\n")
