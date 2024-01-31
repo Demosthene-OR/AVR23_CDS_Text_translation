@@ -13,12 +13,12 @@ TEAM_MEMBERS = [
     Member(
         name="Keyne Dupont&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",
         linkedin_url="https://www.linkedin.com/in/keyne-dupont/",
-        github_url="https://github.com/charlessutton",
+        github_url=None,
     ),
     Member(
         name="Tia Ratsimbason",
         linkedin_url="https://www.linkedin.com/in/tia-ratsimbason-42110887/",
-        github_url="https://github.com/charlessutton",
+        github_url=None,
     ),    
     Member(
     name="Olivier Renouard",
