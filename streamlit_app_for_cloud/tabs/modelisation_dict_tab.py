@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import os
 from sacrebleu import corpus_bleu
 if st.session_state.Cloud == 0:

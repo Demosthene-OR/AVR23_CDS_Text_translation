@@ -1,10 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import os
 import matplotlib.pyplot as plt
 import tiktoken
-import random
 import joblib
 import json
 import csv
@@ -12,7 +10,6 @@ from transformers import pipeline
 import keras
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from sklearn.preprocessing import LabelEncoder
-from sklearn.feature_extraction.text import CountVectorizer
 from tensorflow.keras.utils import plot_model
 from filesplit.merge import Merge
 from extra_streamlit_components import tab_bar, TabBarItemData

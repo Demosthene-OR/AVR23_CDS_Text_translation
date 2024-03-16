@@ -1,6 +1,5 @@
 import streamlit as st
 import os
-import numpy as np
 import pandas as pd
 import collections
 from nltk.tokenize import word_tokenize
@@ -8,7 +7,7 @@ from nltk import download
 from ast import literal_eval
 from translate_app import tr
 if st.session_state.Cloud == 0:
-    import nltk
+    # import nltk
     import contextlib
     import re
     from nltk.corpus import stopwords

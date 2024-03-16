@@ -4,7 +4,7 @@ from translate_app import tr
 title = "Démosthène"
 sidebar_name = "Introduction"
 
-
+      
 def run():
 
     # TODO: choose between one of these GIFs
@@ -12,7 +12,7 @@ def run():
     # st.image("https://dst-studio-template.s3.eu-west-3.amazonaws.com/2.gif")
     # st.image("https://dst-studio-template.s3.eu-west-3.amazonaws.com/3.gif")
     # st.image("assets/tough-communication.gif",use_column_width=True)
-    
+
     st.write("")
     if st.session_state.Cloud == 0: 
         st.image("assets/miss-honey-glasses-off.gif",use_column_width=True)

@@ -4,7 +4,6 @@ import numpy as np
 import os
 from sacrebleu import corpus_bleu
 from transformers import pipeline
-# from translate import Translator
 from deep_translator import GoogleTranslator
 from audio_recorder_streamlit import audio_recorder
 import speech_recognition as sr
@@ -19,7 +18,6 @@ from tensorflow import keras
 from keras_nlp.layers import TransformerEncoder
 from tensorflow.keras import layers
 from tensorflow.keras.utils import plot_model
-# from PIL import Image
 from gtts import gTTS
 from extra_streamlit_components import tab_bar, TabBarItemData
 from translate_app import tr
